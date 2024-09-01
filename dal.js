@@ -11,8 +11,20 @@ MongoClient.connect(url, { useUnifiedTopology: true }, function (err, client) {
 });
 
 // create user account using the collection.insertOne function
-function create(name, email, password) {
+ function create(name, email, password) {
     // TODO: populate this function based off the video
+    const collection = db.collection('users')
+    const doc = {name:`${name}`, email:`${email}`, password:`${password}`, balance:0}
+    collection.insertOne(doc, (err,result) => {
+        if(err) {
+            console.log("Something went wrong");
+        }
+        else{
+            console.log("new doc inserted");
+        }
+
+    })
+
 }
 
 // find user account 
