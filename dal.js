@@ -1,77 +1,76 @@
-const MongoClient = require('mongodb').MongoClient;
-const url = 'mongodb://localhost:27017';
-let db = null;
+const {MongoClient} = require('mongodb');
+require('dotenv').config()
+let db;
+let conn;
+ async function dbconnection(){
+    const url = process.env.MONGO_URI;
+    const client = new MongoClient(url);
+    // connect to mongo
+    try {
+     conn = await client.connect();
+     console.log("Successfully connected");
+}   catch(e) {
+      console.error(e);
+}
+     db = conn.db("sample_training");
+}
+dbconnection()
 
-// connect to mongo
-MongoClient.connect(url, { useUnifiedTopology: true }, function (err, client) {
-    console.log("Connected successfully to db server");
 
-    // connect to myproject database
-    db = client.db('myproject');
-});
+
 
 // create user account using the collection.insertOne function
- function create(name, email, password) {
-    // TODO: populate this function based off the video
-    const collection = db.collection('users')
-    const doc = {name:`${name}`, email:`${email}`, password:`${password}`, balance:0}
-    collection.insertOne(doc, (err,result) => {
-        if(err) {
-            console.log("Something went wrong");
-        }
-        else{
-            console.log("new doc inserted");
-        }
-
-    })
-
+async function create(name, email, password) {
+        const collection = db.collection("users");
+        const doc = { name, email, password, balance: 0 };
+        const result = await collection.insertOne(doc);
+        return doc;
 }
 
 // find user account 
-function find(email) {
-    return new Promise((resolve, reject) => {
-        const customers = db
-            .collection('users')
-            .find({ email: email })
-            .toArray(function (err, docs) {
-                err ? reject(err) : resolve(docs);
-            });
-    })
+async function find(email) {
+    try {
+        const collection = db.collection('users');
+        const customers = await collection.find({ email: email }).toArray();
+        return customers;
+    } catch (err) {
+        throw err; // or handle the error as needed
+    }
 }
-
 // find user account
-function findOne(email) {
-    return new Promise((resolve, reject) => {
-        const customers = db
-            .collection('users')
-            .findOne({ email: email })
-            .then((doc) => resolve(doc))
-            .catch((err) => reject(err));
-    })
-}
+async function findOne(email) {
+    try{
+        const collection = db.collection('users');
+        const customer = await collection.findOne({ email: email });
+        return customer;
+    }
+    catch(err){
+        throw err;
+    }
+    }
 
 // update - deposit/withdraw amount
 function update(email, amount) {
-    return new Promise((resolve, reject) => {
-        const customers = db
-            .collection('users')
-            .findOneAndUpdate(
-                { email: email },
-                { $inc: { balance: amount } },
-                { returnOriginal: false },
-                function (err, documents) {
-                    err ? reject(err) : resolve(documents);
-                }
-            );
+    const customers = db.collection('users');
+    try {
+        const result = collection.findOneAndUpdate(
+            { email: email },
+            { $inc: { balance: amount } },
+            { returnOriginal: false }
+        );
+        return result;
+    } catch (err) {
+        throw err;
+    }
 
-
-    });
 }
 
-// return all users by using the collection.find method
-function all() {
-    // TODO: populate this function based off the video
-}
-
-
+async function all() {
+    try {
+      const customers = await db.collection("users").find({}).toArray();
+      return customers;
+    } catch (error) {
+      throw error;
+    }
+  }
 module.exports = { create, findOne, find, update, all };
