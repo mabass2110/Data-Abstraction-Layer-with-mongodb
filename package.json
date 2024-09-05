@@ -4,12 +4,15 @@
   "description": "lowdb sample for 1.125",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "start": "nodemon index.js"
   },
   "author": "abel@mit.edu",
   "license": "MIT",
   "dependencies": {
+    "body-parser": "^1.20.2",
     "cors": "^2.8.4",
+    "dotenv": "^16.4.5",
     "express": "^4.16.3",
     "lowdb": "^1.0.0",
     "mongodb": "^6.8.0"
