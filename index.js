@@ -1,32 +1,44 @@
-var express = require('express');
-var app     = express();
-var cors    = require('cors');
-var dal     = require('./dal.js');
+const express = require('express');
+const app = express();
+const cors = require('cors');
+const dal = require('./dal.js');
 const e = require('express');
+const port = process.env.PORT;
+const bodyParser = require("body-parser");
 
 // used to serve static files from public directory
 app.use(express.static('public'));
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({extended: true}))
 app.use(cors());
 
 // create user account
-app.get('/account/create/:name/:email/:password',async function (req, res) {
+app.post('/account/create', async function (req, res) {
+    try {
+        const { name, email, password } = req.body; // Assuming you're sending data in the body
 
-    const users = await dal.find(req.params.email);
-            // if user exists, return error message
-            if(users.length > 0){
-                console.log('User already in exists');
-                res.send('User already in exists');    
-            }
-            else{
-                // else create user
-                const user = dal.create(req.params.name, req.params.email, req.params.password)
-                console.log(user);
-                res.send(user);                        
-            }
+        if (!name || !email || !password) {
+            return res.status(400).send('All fields are required');
+        }
 
-        });
+        const users = await dal.find(email);
 
+        // Check if user exists
+        if (users.length > 0) {
+            console.log('User already exists');
+            return res.status(400).send('User already exists');
+        }
 
+        // Create new user
+        const user = await dal.create(name, email, password); // Ensure create is awaited if it returns a Promise
+        console.log(user);
+        res.status(201).send(user); // 201 Created status code
+
+    } catch (error) {
+        console.error('Error creating user:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
 
 // login user 
 app.get('/account/login/:email/:password', async (req, res) => {
@@ -73,12 +85,12 @@ app.get('/account/update/:email/:amount', async (req, res) => {
 
 // all accounts
 app.get('/account/all', async (req, res) => {
-    const docs = dal.all();
+    const docs = await dal.all();
     console.log(docs);
     res.send(docs)
    
 });
 
-var port = 3000;
-app.listen(port);
-console.log('Running on port: ' + port);
+app.listen(port, () => {
+    console.log(`The server is running on port http://localhost:${port}`)
+})
